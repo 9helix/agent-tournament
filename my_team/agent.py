@@ -12,13 +12,15 @@ This is a universal agent that works for both blue and red teams.
 
 from config import *
 import random
+import numpy as np
 
 class Agent:
-    
+
     def __init__(self, color, index):
         self.color = color
         self.index = index
-        
+        self.holding_flag = False
+        self.definitive_path=[] #list of locations to follow
         # --- Universal Agent Logic Setup ---
         # Set team-specific goals and identifiers based on the agent's color.
         # This allows the update logic to be color-agnostic.
@@ -33,6 +35,7 @@ class Agent:
             self.return_direction = "right"
 
     def update(self, visible_world, position, can_shoot, holding_flag, shared_knowledge, hp, ammo):
+        self.holding_flag = holding_flag
         # Determine preferred direction based on state (holding flag or not)
         if holding_flag:
             preferred_direction = self.return_direction
@@ -52,7 +55,7 @@ class Agent:
                 action = ""  # do nothing
             else:
                 action = "move"
-    
+
         # Randomly choose a direction, with a bias towards the preferred direction
         r = random.random() * 1.5
         if r < 0.25:
@@ -65,9 +68,39 @@ class Agent:
             direction = "down"
         else:
             direction = preferred_direction
-            
+
         return action, direction
+        #intentionally below return, will test later
+        if self.enemy_flag_tile in np.array(visible_world):
+            print(f"{self.color} agent {self.index} sees the enemy flag!")
+            #find path to enemy flag
+            enemy_flag_position = np.argwhere(np.array(visible_world) == self.enemy_flag_tile)[0]
+            path = astar(visible_world, position, tuple(enemy_flag_position))
 
     def terminate(self, reason):
         if reason == "died":
             print(f"{self.color} agent {self.index} died.")
+
+    def pick_desination(
+        self, visible_world: list[list[str]], visited_tiles: list[tuple[int, int]]
+    ):
+        visible_world = np.array(visible_world)
+        rows, cols = np.where(visible_world == " ")
+        candidates = list(zip(rows, cols))
+        if self.color == "blue" or (self.holding_flag and self.color == "red"):
+            weights = [col + 1 for (row, col) in candidates]
+        else:
+            weights = [1 - col for (row, col) in candidates]
+        if candidates:
+            selected_coord = None
+            while selected_coord is None or selected_coord in visited_tiles:
+                selected_coord = random.choices(candidates, weights=weights, k=1)[0]
+
+                # --- Let's see what happened ---
+                print(f"All '1's (candidates): {candidates}")
+                print(f"Their weights (col + 1): {weights}")
+                print(f"\nSelected coordinate: {selected_coord}")
+            return selected_coord
+        else:
+            print("No '1's found in the map.")
+            return None
