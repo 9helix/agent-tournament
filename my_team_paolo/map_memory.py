@@ -1,5 +1,6 @@
 # movement_manager.py
 import random
+from config import *
 
 class MapMemory:
     """
@@ -10,7 +11,7 @@ class MapMemory:
     - Moves one step toward selected target (straight-line, not pathfinding)
     """
 
-    def __init__(self, team_color, map_width=41, map_height=21):
+    def __init__(self, team_color):
         self.team_color = team_color
         
         # Memory structures
@@ -18,8 +19,8 @@ class MapMemory:
         self.visited_targets = set()     # explored goals
         self.current_target = None       # active goal
         
-        self.map_width = map_width
-        self.map_height = map_height
+        self.map_width = WIDTH
+        self.map_height = HEIGHT
 
     # -------------------------------------------------------------
     # Map memory update (converts local visible_world to global map)
