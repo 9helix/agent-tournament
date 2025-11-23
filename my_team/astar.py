@@ -13,13 +13,10 @@ class Node:
         return self.position == other.position
 
 
-# https://medium.com/@nicholas.w.swift/easy-a-star-pathfinding-7e6689c7f7b2
-
-
 def astar(
-    shared_map: list[list[str]],
+    shared_map: dict[tuple[int,int],str],
     current_position: tuple[int, int],
-    target_position: tuple[int, int],
+    target_position: tuple[int, int],flag_collider:str
 ) -> list[tuple[int, int]]:
     """Returns a list of tuples as a path from the given start to the given end in the given maze"""
 
@@ -29,30 +26,26 @@ def astar(
     end_node = Node(None, target_position)
     end_node.g = end_node.h = end_node.f = 0
 
-    # Initialize both open and closed list
-    open_list = []
-    closed_list = []
+    # Initialize both open and closed list - use dict/set for O(1) lookup
+    open_dict = {current_position: start_node}  # position -> node mapping
+    closed_set = set()  # just positions
 
-    # Add the start node
-    open_list.append(start_node)
+    max_iterations = 10000  # Safety limit
+    iterations = 0
 
-    # Loop until you find the end
-    while len(open_list) > 0:
+    while open_dict and iterations < max_iterations:
+        iterations += 1
+        
+        # Get the current node with lowest f value
+        current_node = min(open_dict.values(), key=lambda node: node.f)
+        current_position = current_node.position
 
-        # Get the current node
-        current_node = open_list[0]
-        current_index = 0
-        for index, item in enumerate(open_list):
-            if item.f < current_node.f:
-                current_node = item
-                current_index = index
-
-        # Pop current off open list, add to closed list
-        open_list.pop(current_index)
-        closed_list.append(current_node)
+        # Pop current off open dict, add to closed set
+        del open_dict[current_position]
+        closed_set.add(current_position)
 
         # Found the goal
-        if current_node == end_node:
+        if current_position == target_position:
             path = []
             current = current_node
             while current is not None:
@@ -61,62 +54,39 @@ def astar(
             return path[::-1]  # Return reversed path
 
         # Generate children
-        children = []
-        for new_position in [
-            (0, -1),
-            (0, 1),
-            (-1, 0),
-            (1, 0),
-            (-1, -1),
-            (-1, 1),
-            (1, -1),
-            (1, 1),
-        ]:  # Adjacent squares
-
-            # Get node position
+        for new_position in [(0, -1), (0, 1), (-1, 0), (1, 0)]:
             node_position = (
-                current_node.position[0] + new_position[0],
-                current_node.position[1] + new_position[1],
+                current_position[0] + new_position[0],
+                current_position[1] + new_position[1],
             )
 
-            # Make sure within range
-            if (
-                node_position[0] > (len(shared_map) - 1)
-                or node_position[0] < 0
-                or node_position[1] > (len(shared_map[len(shared_map) - 1]) - 1)
-                or node_position[1] < 0
-            ):
+            # Make sure within range and walkable
+            if node_position not in shared_map:
+                continue
+            if shared_map[node_position] in "#/" + flag_collider:
                 continue
 
-            # Make sure walkable terrain
-            if shared_map[node_position[0]][node_position[1]] in "#/":
+            # Skip if already in closed set
+            if node_position in closed_set:
                 continue
 
-            # Create new node
+            # Calculate scores
+            g = current_node.g + 1
+            h = ((node_position[0] - target_position[0]) ** 2) + (
+                (node_position[1] - target_position[1]) ** 2
+            )
+            f = g + h
+
+            # If in open list with better score, skip
+            if node_position in open_dict:
+                if g >= open_dict[node_position].g:
+                    continue
+
+            # Create and add new node
             new_node = Node(current_node, node_position)
+            new_node.g = g
+            new_node.h = h
+            new_node.f = f
+            open_dict[node_position] = new_node
 
-            # Append
-            children.append(new_node)
-
-        # Loop through children
-        for child in children:
-
-            # Child is on the closed list
-            for closed_child in closed_list:
-                if child == closed_child:
-                    continue
-
-            # Create the f, g, and h values
-            child.g = current_node.g + 1
-            child.h = ((child.position[0] - end_node.position[0]) ** 2) + (
-                (child.position[1] - end_node.position[1]) ** 2
-            )
-            child.f = child.g + child.h
-
-            # Child is already in the open list
-            for open_node in open_list:
-                if child == open_node and child.g > open_node.g:
-                    continue
-
-            # Add the child to the open list
-            open_list.append(child)
+    return None  # No path found

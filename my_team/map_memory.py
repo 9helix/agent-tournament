@@ -12,12 +12,12 @@ class MapMemory:
     """
 
     def __init__(self, team_color):
-        self.team_color = team_color
+        #self.team_color = team_color
         
         # Memory structures
         self.known_map = {}              # (x, y) → tile
-        self.visited_targets = set()     # explored goals
-        self.current_target = None       # active goal
+        #self.visited_targets = set()     # explored goals
+        #self.current_target = None       # active goal
         
         self.map_width = WIDTH
         self.map_height = HEIGHT
