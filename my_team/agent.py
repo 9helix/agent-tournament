@@ -38,12 +38,30 @@ class Agent:
             self.return_direction = "right"
         self.mapMemory=MapMemory(color)
         self.holding_flag=False
+        self.base_position=None
     def update(self, visible_world, position, can_shoot, holding_flag, shared_knowledge, hp, ammo):
         self.mapMemory.update_map_memory(visible_world, position, shared_knowledge)
         shared_knowledge=self.mapMemory.known_map
         print(f"Agent {self.color} {self.index}, local position: {position}, HP: {hp}, Ammo: {ammo}")
-              
+
+        if self.base_position is None:
+            # Assume base is at the first seen flag position
+            for pos, char in shared_knowledge.items():
+                if char == (ASCII_TILES["blue_flag"] if self.color == "blue" else ASCII_TILES["red_flag"]):
+                    self.base_position = pos
+                    print(f"Agent {self.color} {self.index} set base position to: {self.base_position}")
+                    break 
         self.holding_flag = holding_flag
+        if self.holding_flag:
+            print(f"Agent {self.color} {self.index} is holding the flag.")
+            #flag collider not mentioned since we need to the flags location
+            path=astar.astar(shared_knowledge, position, self.base_position,"")
+            if path and len(path)>1:
+                self.current_path=path[1:] #exclude current position
+                next_step=self.current_path.pop(0)
+                print("position:",position)
+                print("next step:",next_step)
+                return self.determine_direction(position,next_step)
         if self.current_path:
             print(f"Agent {self.color} {self.index} following path: {self.current_path}")
             next_step=self.current_path.pop(0)
@@ -83,14 +101,15 @@ class Agent:
     ):
         candidates = [pos for pos, char in visible_world.items() if char not in "#/"+(ASCII_TILES["blue_flag"] if self.color=="blue" else ASCII_TILES["red_flag"])]
         
+        DIRECTION_PRIORITY=5 #agents determination to go to the opponents side or return to their side
         if self.color == "blue" or (self.holding_flag and self.color == "red"):
-            weights = [(row + 1)**3 for (row, col) in candidates]
+            weights = [(row + 1)**DIRECTION_PRIORITY for (row, col) in candidates]
         else:
             # Prioritize lower columns (moving left). 
             # Adjusted to avoid negative weights from original logic [1 - col]
             if candidates:
                 max_row = max(row for row, col in candidates)
-                weights = [(max_row - row + 1)**3 for (row, col) in candidates]
+                weights = [(max_row - row + 1)**DIRECTION_PRIORITY for (row, col) in candidates]
             else:
                 weights = []
 
