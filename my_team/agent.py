@@ -62,6 +62,31 @@ class Agent:
                 print("position:",position)
                 print("next step:",next_step)
                 return self.determine_direction(position,next_step)
+            
+        # --- ENEMY FLAG OVERRIDE ---
+        if not self.holding_flag:
+            enemy_flag_pos = None
+            for pos, char in shared_knowledge.items():
+                if char == self.enemy_flag_tile:
+                    enemy_flag_pos = pos
+                    break
+
+            if enemy_flag_pos and not self.current_path: # Helps with A* recomputing (citation needed)
+                print(f"Agent {self.color} {self.index} targeting enemy flag at {enemy_flag_pos}")
+
+                # OVERWRITE any existing random path
+                path = astar.astar(
+                    shared_knowledge,
+                    position,
+                    enemy_flag_pos,
+                    ""
+                )
+
+                if path and len(path) > 1:
+                    self.current_path = path[1:]  # discard current position
+                    next_step = self.current_path.pop(0)
+                    return self.determine_direction(position, next_step)
+            
         if self.current_path:
             print(f"Agent {self.color} {self.index} following path: {self.current_path}")
             next_step=self.current_path.pop(0)
