@@ -51,8 +51,11 @@ class MapMemory:
                     continue
 
                 # Store known tiles normally
-                shared_knowledge[(world_x, world_y)] = tile
-                self.known_map[(world_x, world_y)] = tile
+                if (world_x, world_y) not in shared_knowledge:
+                    shared_knowledge[(world_x, world_y)] = tile
+                
+                if (world_x, world_y) not in self.known_map:
+                    self.known_map[(world_x, world_y)] = tile
 
     # REMOVE AFTER INTEGRATION
     # -------------------------------------------------------------
