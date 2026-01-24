@@ -141,9 +141,6 @@ class Agent:
             else:
                 return None,None
 
-
-
-
         return None,None
 
 
@@ -157,11 +154,10 @@ class Agent:
         candidates = [pos for pos, char in visible_world.items() if char not in "#/"+(ASCII_TILES["blue_flag"] if self.color=="blue" else ASCII_TILES["red_flag"])]
         
         DIRECTION_PRIORITY=2.5 #agents determination to go to the opponents side or return to their side
-        CENTER_PRIORITY = 1.5 # Preference for the middle of the map (adjust as needed)
+        CENTER_PRIORITY = 1.5 # Preference for the middle of the map
 
         weights = []
         if candidates:
-            # Determine max_x for weighting logic when moving left
             max_x = max(pos[0] for pos in candidates)
 
             for (x, y) in candidates:
