@@ -53,21 +53,27 @@ class Agent:
 
         # --- SHOOT ADJACENT ENEMY ---
         if can_shoot:
-            enemy_char = ASCII_TILES["red_agent"] if self.color == "blue" else ASCII_TILES["blue_agent"]
+            #for i in visible_world:
+            #    for j in i:
+            #        print(j, end=" ")
+            #    print()
+            enemy_char = ASCII_TILES["red_agent"]+ASCII_TILES["red_agent_f"] if self.color == "blue" else ASCII_TILES["blue_agent"]+ASCII_TILES["blue_agent_f"]
             vr = len(visible_world) // 2
             
             # Change number to how far you want the agent to detect and shot (1 is the square directly next to the agent)
+            DIST=1
             directions = {
-                "up":    (vr - 1, vr),
-                "down":  (vr + 1, vr),
-                "left":  (vr, vr - 1),
-                "right": (vr, vr + 1),
+                "up":    [(vr - DIST, vr- DIST),(vr,vr),(vr-DIST*2,vr)],
+                "down":  [(vr + DIST, vr + DIST),(vr+DIST*2,vr)],
+                "left":  [(vr + DIST, vr - DIST),(vr,vr-DIST*2)],
+                "right": [(vr - DIST, vr + DIST),(vr,vr+DIST*2)],
             }
 
-            for direction, (y, x) in directions.items():
-                if visible_world[y][x] == enemy_char:
-                    print(f"Agent {self.color} {self.index} shoots {direction}")
-                    return ("shoot", direction)
+            for direction, dirs in directions.items():
+                for (y,x) in dirs:
+                    if visible_world[y][x] in enemy_char:
+                        print(f"Agent {self.color} {self.index} shoots {direction}")
+                        return ("shoot", direction)
 
 
         if self.holding_flag:
@@ -150,8 +156,8 @@ class Agent:
     ):
         candidates = [pos for pos, char in visible_world.items() if char not in "#/"+(ASCII_TILES["blue_flag"] if self.color=="blue" else ASCII_TILES["red_flag"])]
         
-        DIRECTION_PRIORITY=2 #agents determination to go to the opponents side or return to their side
-        CENTER_PRIORITY = 1.2 # Preference for the middle of the map (adjust as needed)
+        DIRECTION_PRIORITY=2.5 #agents determination to go to the opponents side or return to their side
+        CENTER_PRIORITY = 1.5 # Preference for the middle of the map (adjust as needed)
 
         weights = []
         if candidates:
