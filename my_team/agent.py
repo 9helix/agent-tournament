@@ -50,6 +50,26 @@ class Agent:
                     print(f"Agent {self.color} {self.index} set base position to: {self.base_position}")
                     break 
         self.holding_flag = holding_flag
+
+        # --- SHOOT ADJACENT ENEMY ---
+        if can_shoot:
+            enemy_char = ASCII_TILES["red_agent"] if self.color == "blue" else ASCII_TILES["blue_agent"]
+            vr = len(visible_world) // 2
+            
+            # Change number to how far you want the agent to detect and shot (1 is the square directly next to the agent)
+            directions = {
+                "up":    (vr - 1, vr),
+                "down":  (vr + 1, vr),
+                "left":  (vr, vr - 1),
+                "right": (vr, vr + 1),
+            }
+
+            for direction, (y, x) in directions.items():
+                if visible_world[y][x] == enemy_char:
+                    print(f"Agent {self.color} {self.index} shoots {direction}")
+                    return ("shoot", direction)
+
+
         if self.holding_flag:
             print(f"Agent {self.color} {self.index} is holding the flag.")
             #flag collider not mentioned since we need to the flags location
