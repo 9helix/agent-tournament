@@ -63,7 +63,7 @@ class Agent:
             # Change number to how far you want the agent to detect and shot (1 is the square directly next to the agent)
             DIST=1
             directions = {
-                "up":    [(vr - DIST, vr- DIST),(vr,vr),(vr-DIST*2,vr)],
+                "up":    [(vr - DIST, vr- DIST if self.color == "blue" else vr+DIST),(vr,vr),(vr-DIST*2,vr)],
                 "down":  [(vr + DIST, vr + DIST),(vr+DIST*2,vr)],
                 "left":  [(vr + DIST, vr - DIST),(vr,vr-DIST*2)],
                 "right": [(vr - DIST, vr + DIST),(vr,vr+DIST*2)],
