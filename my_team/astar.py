@@ -14,9 +14,10 @@ class Node:
 
 
 def astar(
-    shared_map: dict[tuple[int,int],str],
+    shared_map: dict[tuple[int, int], str],
     current_position: tuple[int, int],
-    target_position: tuple[int, int],flag_collider:str
+    target_position: tuple[int, int],
+    flag_collider: str,
 ) -> list[tuple[int, int]]:
     """Returns a list of tuples as a path from the given start to the given end in the given maze"""
 
@@ -35,7 +36,7 @@ def astar(
 
     while open_dict and iterations < max_iterations:
         iterations += 1
-        
+
         # Get the current node with lowest f value
         current_node = min(open_dict.values(), key=lambda node: node.f)
         current_position = current_node.position
